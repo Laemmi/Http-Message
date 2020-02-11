@@ -28,130 +28,236 @@
 
 declare(strict_types=1);
 
-namespace Laemmi\Laemmi\Http\Message;
+namespace Laemmi\Http\Message;
 
+use InvalidArgumentException;
 use Psr\Http\Message\UriInterface;
 
 class Uri implements UriInterface
 {
     /**
-     * @inheritDoc
+     * @var string
      */
-    public function getScheme()
+    protected $scheme;
+
+    /**
+     * @var string
+     */
+    protected $host;
+
+    /**
+     * @var int|null
+     */
+    protected $port;
+
+    /**
+     * @var string
+     */
+    protected $path;
+
+    /**
+     * @var string
+     */
+    protected $query;
+
+    /**
+     * @var string
+     */
+    protected $fragment;
+
+    /**
+     * @var string
+     */
+    protected $user;
+
+    /**
+     * @var string
+     */
+    protected $password;
+
+    /**
+     * Uri constructor.
+     * @param string $scheme
+     * @param string $host
+     * @param int|null $port
+     * @param string $path
+     * @param string $query
+     * @param string $fragment
+     * @param string $user
+     * @param string $password
+     */
+    public function __construct(
+        string $scheme,
+        string $host,
+        ?int $port       = null,
+        string $path     = '/',
+        string $query    = '',
+        string $fragment = '',
+        string $user     = '',
+        string $password = '')
     {
-        // TODO: Implement getScheme() method.
+        $this->scheme   = $this->filterScheme($scheme);
+        $this->host     = $this->filterHost($host);
+        $this->port     = $this->filterPort($port);
+        $this->path     = $this->filterPath($path);
+        $this->query    = $this->filterQuery($query);
+        $this->fragment = $this->filterFragment($fragment);
+        $this->user     = $this->filterUser($user);
+        $this->password = $this->filterPassword($password);
     }
 
     /**
      * @inheritDoc
      */
-    public function getAuthority()
+    public function getScheme(): string
     {
-        // TODO: Implement getAuthority() method.
+        return $this->scheme;
     }
 
     /**
      * @inheritDoc
      */
-    public function getUserInfo()
+    public function getAuthority(): string
     {
-        // TODO: Implement getUserInfo() method.
+        $userInfo = $this->getUserInfo();
+        $port     = $this->getPort();
+
+        return ('' !== $userInfo ? $userInfo . '@' : '') . $this->getHost() . (null !== $port ? ':' . $port : '');
     }
 
     /**
      * @inheritDoc
      */
-    public function getHost()
+    public function getUserInfo(): string
     {
-        // TODO: Implement getHost() method.
+        return $this->user . ('' !== $this->password ? ':' . $this->password : '');
     }
 
     /**
      * @inheritDoc
      */
-    public function getPort()
+    public function getHost(): string
     {
-        // TODO: Implement getPort() method.
+        return $this->host;
     }
 
     /**
      * @inheritDoc
      */
-    public function getPath()
+    public function getPort(): ?int
     {
-        // TODO: Implement getPath() method.
+        $default = [
+            'http'  => 80,
+            'https' => 443
+        ];
+
+        if (isset($default[$this->scheme]) && $this->port !== $default[$this->scheme]) {
+            return $this->port;
+        }
+
+        return null;
     }
 
     /**
      * @inheritDoc
      */
-    public function getQuery()
+    public function getPath(): string
     {
-        // TODO: Implement getQuery() method.
+        return $this->path;
     }
 
     /**
      * @inheritDoc
      */
-    public function getFragment()
+    public function getQuery(): string
     {
-        // TODO: Implement getFragment() method.
+        return $this->query;
     }
 
     /**
      * @inheritDoc
      */
-    public function withScheme($scheme)
+    public function getFragment(): string
     {
-        // TODO: Implement withScheme() method.
+        return $this->fragment;
     }
 
     /**
      * @inheritDoc
      */
-    public function withUserInfo($user, $password = null)
+    public function withScheme($scheme): UriInterface
     {
-        // TODO: Implement withUserInfo() method.
+        $clone = clone $this;
+        $clone->scheme = $this->filterScheme($scheme);
+
+        return $clone;
     }
 
     /**
      * @inheritDoc
      */
-    public function withHost($host)
+    public function withUserInfo($user, $password = ''): UriInterface
     {
-        // TODO: Implement withHost() method.
+        $clone = clone $this;
+        $clone->user     = $this->filterUser($user);
+        $clone->password = $this->filterPassword($password);
+
+        return $clone;
     }
 
     /**
      * @inheritDoc
      */
-    public function withPort($port)
+    public function withHost($host): UriInterface
     {
-        // TODO: Implement withPort() method.
+        $clone = clone $this;
+        $clone->host = $this->filterHost($host);
+
+        return $clone;
     }
 
     /**
      * @inheritDoc
      */
-    public function withPath($path)
+    public function withPort($port): UriInterface
     {
-        // TODO: Implement withPath() method.
+        $clone = clone $this;
+        $clone->port = $this->filterPort($port);
+
+        return $clone;
     }
 
     /**
      * @inheritDoc
      */
-    public function withQuery($query)
+    public function withPath($path): UriInterface
     {
-        // TODO: Implement withQuery() method.
+        $clone = clone $this;
+        $clone->path = $this->filterPath($path);
+
+        return $clone;
     }
 
     /**
      * @inheritDoc
      */
-    public function withFragment($fragment)
+    public function withQuery($query): UriInterface
     {
-        // TODO: Implement withFragment() method.
+        $clone = clone $this;
+        $clone->query = $this->filterQuery($query);
+
+        return $clone;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withFragment($fragment): UriInterface
+    {
+        $clone = clone $this;
+        $clone->fragment = $this->filterFragment($fragment);
+
+        return $clone;
     }
 
     /**
@@ -159,6 +265,91 @@ class Uri implements UriInterface
      */
     public function __toString()
     {
-        // TODO: Implement __toString() method.
+        $scheme    = $this->getScheme();
+        $authority = $this->getAuthority();
+        $query     = $this->getQuery();
+        $fragment  = $this->getFragment();
+
+        return ('' !== $scheme ? $scheme . ':' : '')
+            . ('' !== $authority ? '//' . $authority : '')
+            . $this->getPath()
+            . ('' !== $query ? '?' . $query : '')
+            . ('' !== $fragment ? '#' . $fragment : '');
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    protected function filterScheme($value): string
+    {
+        return $value;
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    protected function filterHost($value): string
+    {
+        return $value;
+    }
+
+    /**
+     * @param $value
+     * @return int|null
+     */
+    protected function filterPort($value): ?int
+    {
+        if (is_null($value) || (1 <= $value && 65535 >= $value)) {
+            return $value;
+        }
+
+        throw new InvalidArgumentException('Uri port must be null or an integer between 1 - 65535');
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    protected function filterPath($value): string
+    {
+        return $value;
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    protected function filterQuery($value): string
+    {
+        return $value;
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    protected function filterFragment($value): string
+    {
+        return $value;
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    protected function filterUser($value): string
+    {
+        return $value;
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    protected function filterPassword($value): string
+    {
+        return $value;
     }
 }

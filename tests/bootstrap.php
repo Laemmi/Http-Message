@@ -18,68 +18,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  *
- * @category   http-message
+ * @category   http-messages
  * @author     Michael Lämmlein <laemmi@spacerabbit.de>
  * @copyright  ©2020 laemmi
  * @license    http://www.opensource.org/licenses/mit-license.php MIT-License
  * @version    1.0.0
- * @since      02.02.20
+ * @since      11.02.20
  */
 
 declare(strict_types=1);
 
-namespace Laemmi\Http\Message;
-
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\UriInterface;
-
-class Request extends Message implements RequestInterface
-{
-    /**
-     * @inheritDoc
-     */
-    public function getRequestTarget()
-    {
-        // TODO: Implement getRequestTarget() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function withRequestTarget($requestTarget)
-    {
-        // TODO: Implement withRequestTarget() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getMethod()
-    {
-        // TODO: Implement getMethod() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function withMethod($method)
-    {
-        // TODO: Implement withMethod() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getUri()
-    {
-        // TODO: Implement getUri() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function withUri(UriInterface $uri, $preserveHost = false)
-    {
-        // TODO: Implement withUri() method.
-    }
-}
+require __DIR__ . '/../vendor/autoload.php';

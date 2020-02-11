@@ -28,7 +28,7 @@
 
 declare(strict_types=1);
 
-namespace Laemmi\Laemmi\Http\Message;
+namespace Laemmi\Http\Message;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
