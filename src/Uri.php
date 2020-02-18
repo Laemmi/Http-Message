@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,13 +90,13 @@ class Uri implements UriInterface
     public function __construct(
         string $scheme,
         string $host,
-        ?int $port       = null,
-        string $path     = '/',
-        string $query    = '',
+        ?int $port = null,
+        string $path = '/',
+        string $query = '',
         string $fragment = '',
-        string $user     = '',
-        string $password = '')
-    {
+        string $user = '',
+        string $password = ''
+    ) {
         $this->scheme   = $this->filterScheme($scheme);
         $this->host     = $this->filterHost($host);
         $this->port     = $this->filterPort($port);

@@ -29,4 +29,21 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/../vendor/autoload.php';
+namespace Laemmi\Http\Message\Test;
+
+use Laemmi\Http\Message\Stream;
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\StreamInterface;
+
+class StreamTest extends TestCase
+{
+    public function newStream(): StreamInterface
+    {
+        return new Stream(fopen('php://temp', 'w+'));
+    }
+
+    public function testIsReadable()
+    {
+        $this->assertTrue($this->newStream()->isReadable());
+    }
+}

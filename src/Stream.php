@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,24 +31,46 @@ declare(strict_types=1);
 
 namespace Laemmi\Http\Message;
 
+use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
+use RuntimeException;
 
 class Stream implements StreamInterface
 {
     /**
-     * @inheritDoc
+     * @var resource
      */
-    public function __toString()
+    protected $resource;
+
+    /**
+     * Stream constructor.
+     *
+     * @param $resource
+     */
+    public function __construct($resource)
     {
-        // TODO: Implement __toString() method.
+        $this->resource = $this->filterResource($resource);
     }
 
     /**
      * @inheritDoc
      */
-    public function close()
+    public function __toString(): string
     {
-        // TODO: Implement close() method.
+        if ($this->isSeekable()) {
+            $this->rewind();
+        }
+        return $this->getContents();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function close(): void
+    {
+        fclose($this->resource);
+
+        $this->detach();
     }
 
     /**
@@ -55,95 +78,153 @@ class Stream implements StreamInterface
      */
     public function detach()
     {
-        // TODO: Implement detach() method.
+        $resource = $this->resource;
+
+        $this->resource = null;
+
+        return $resource;
     }
 
     /**
      * @inheritDoc
      */
-    public function getSize()
+    public function getSize(): ?int
     {
-        // TODO: Implement getSize() method.
+        $stats = fstat($this->resource);
+
+        if ($stats && isset($stats['size'])) {
+            return $stats['size'];
+        }
+
+        return null;
     }
 
     /**
      * @inheritDoc
      */
-    public function tell()
+    public function tell(): int
     {
-        // TODO: Implement tell() method.
+        $position = ftell($this->resource);
+
+        if (false !== $position) {
+            return $position;
+        }
+
+        throw new RuntimeException('Could not get the position of the pointer in stream.');
     }
 
     /**
      * @inheritDoc
      */
-    public function eof()
+    public function eof(): bool
     {
-        // TODO: Implement eof() method.
+        return feof($this->resource);
     }
 
     /**
      * @inheritDoc
      */
-    public function isSeekable()
+    public function isSeekable(): bool
     {
-        // TODO: Implement isSeekable() method.
+        return (bool) $this->getMetadata('seekable');
     }
 
     /**
      * @inheritDoc
      */
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek($offset, $whence = SEEK_SET): void
     {
-        // TODO: Implement seek() method.
+        if (!$this->isSeekable() || -1 === fseek($this->resource, $offset, $whence)) {
+            throw new RuntimeException('Could not seek in stream.');
+        }
     }
 
     /**
      * @inheritDoc
      */
-    public function rewind()
+    public function rewind(): void
     {
-        // TODO: Implement rewind() method.
+        if (!$this->isSeekable() || false === rewind($this->resource)) {
+            throw new RuntimeException('Could not rewind stream.');
+        }
     }
 
     /**
      * @inheritDoc
      */
-    public function isWritable()
+    public function isWritable(): bool
     {
-        // TODO: Implement isWritable() method.
+        $mode = $this->getMetadata('mode');
+
+        if (false !== strstr($mode, 'w') || false !== strstr($mode, '+')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
      * @inheritDoc
      */
-    public function write($string)
+    public function write($string): int
     {
-        // TODO: Implement write() method.
+        $written = false;
+
+        if ($this->isWritable()) {
+            $written = fwrite($this->resource, $string);
+        }
+
+        if (false !== $written) {
+            return $written;
+        }
+
+        throw new RuntimeException('Could not write to stream.');
     }
 
     /**
      * @inheritDoc
      */
-    public function isReadable()
+    public function isReadable(): bool
     {
-        // TODO: Implement isReadable() method.
+        $mode = $this->getMetadata('mode');
+
+        if (false !== strstr($mode, 'r') || false !== strstr($mode, '+')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
      * @inheritDoc
      */
-    public function read($length)
+    public function read($length): string
     {
-        // TODO: Implement read() method.
+        $data = false;
+
+        if ($this->isReadable()) {
+            $data = fread($this->resource, $length);
+        }
+
+        if (is_string($data)) {
+            return $data;
+        }
+
+        throw new RuntimeException('Could not read from stream.');
     }
 
     /**
      * @inheritDoc
      */
-    public function getContents()
+    public function getContents(): string
     {
-        // TODO: Implement getContents() method.
+        $contents = stream_get_contents($this->resource);
+
+        if (is_string($contents)) {
+            return $contents;
+        }
+
+        throw new RuntimeException('Could not get contents of stream.');
     }
 
     /**
@@ -151,6 +232,25 @@ class Stream implements StreamInterface
      */
     public function getMetadata($key = null)
     {
-        // TODO: Implement getMetadata() method.
+        $data = stream_get_meta_data($this->resource);
+
+        if (!$key) {
+            return $data;
+        }
+
+        return isset($data[$key]) ? $data[$key] : null;
+    }
+
+    /**
+     * @param $value
+     * @return resource
+     */
+    protected function filterResource($value)
+    {
+        if (is_resource($value)) {
+            return $value;
+        }
+
+        throw new InvalidArgumentException('Argument must be a valid PHP resource');
     }
 }
