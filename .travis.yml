@@ -6,8 +6,13 @@ php:
 
 before_script:
   - composer self-update
+  - composer require php-coveralls/php-coveralls:^2.2.0
   - composer install --prefer-source --no-interaction --dev
 
 script:
   - vendor/bin/phpunit
+  - vendor/bin/phpunit --coverage-clover clover.xml
   - vendor/bin/phpcs
+
+after_success:
+  - vendor/bin/php-coveralls --coverage_clover=clover.xml -v
