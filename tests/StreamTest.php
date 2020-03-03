@@ -37,13 +37,54 @@ use Psr\Http\Message\StreamInterface;
 
 class StreamTest extends TestCase
 {
-    public function newStream(): StreamInterface
+    public function newStream($mode = 'w+'): StreamInterface
     {
-        return new Stream(fopen('php://temp', 'w+'));
+        return new Stream(fopen('php://temp', $mode));
     }
 
-    public function testIsReadable()
+    /**
+     * @dataProvider readableProvider
+     *
+     * @param string $expected
+     * @param string $mode
+     */
+    public function testIsReadable(bool $expected, string $mode)
     {
-        $this->assertTrue($this->newStream()->isReadable());
+        $this->assertSame($expected, $this->newStream($mode)->isReadable());
+    }
+
+    /**
+     * @dataProvider writableProvider
+     *
+     * @param string $expected
+     * @param string $mode
+     */
+    public function testIsWritable(bool $expected, string $mode)
+    {
+        $this->assertSame($expected, $this->newStream($mode)->isWritable());
+    }
+
+    public function readableProvider()
+    {
+        return [
+            [true, 'r'],
+            [true, 'r+'],
+            [true, 'w'],
+            [true, 'w+'],
+            [true, 'a'],
+            [true, 'a+'],
+        ];
+    }
+
+    public function writableProvider()
+    {
+        return [
+            [false, 'r'],
+            [true, 'r+'],
+            [true, 'w'],
+            [true, 'w+'],
+            [true, 'a'],
+            [true, 'a+'],
+        ];
     }
 }
