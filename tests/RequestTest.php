@@ -24,84 +24,29 @@
  * @copyright  ©2020 laemmi
  * @license    http://www.opensource.org/licenses/mit-license.php MIT-License
  * @version    1.0.0
- * @since      02.02.20
+ * @since      03.03.20
  */
 
 declare(strict_types=1);
 
-namespace Laemmi\Http\Message;
+namespace Laemmi\Http\Message\Test;
 
+use Laemmi\Http\Message\Request;
+use Laemmi\Http\Message\Uri;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\UriInterface;
 
-class Request extends Message implements RequestInterface
+class RequestTest extends TestCase
 {
-    /**
-     * @var string
-     */
-    protected $method;
-
-    /**
-     * @var UriInterface
-     */
-    protected $uri;
-
-    /**
-     * Request constructor.
-     * @param string $method
-     * @param UriInterface $uri
-     */
-    public function __construct(string $method, UriInterface $uri)
+    public function newRequest(): RequestInterface
     {
-        $this->method = $method;
-        $this->uri    = $uri;
+        $uri = $this->createMock(Uri::class);
+
+        return new Request('GET', $uri);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getRequestTarget()
+    public function testGetMethod()
     {
-        // TODO: Implement getRequestTarget() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function withRequestTarget($requestTarget)
-    {
-        // TODO: Implement withRequestTarget() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getMethod(): string
-    {
-        return $this->method;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function withMethod($method)
-    {
-        // TODO: Implement withMethod() method.
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getUri(): UriInterface
-    {
-        return $this->uri;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function withUri(UriInterface $uri, $preserveHost = false)
-    {
-        // TODO: Implement withUri() method.
+        $this->assertEquals('GET', $this->newRequest()->getMethod());
     }
 }
